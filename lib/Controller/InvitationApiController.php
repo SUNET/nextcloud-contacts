@@ -11,14 +11,14 @@ use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
 
-class InvitesApiController extends ApiController {
+class InvitationApiController extends ApiController {
 	protected $appName;
 
 	public function __construct(
 		IRequest $request,
 		private IConfig $config,
 		private IUserSession $userSession,
-		private SocialApiService $socialApiService,
+		private InvitesApiService $socialApiService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 
@@ -34,7 +34,7 @@ class InvitesApiController extends ApiController {
 	 *
 	 * @returns {JSONResponse} an empty JSONResponse with respective http status code
 	 */
-	public function setAppConfig($key, $allow) {
+	public function createInvitation($key, $allow) {
 		$permittedKeys = ['allowSocialSync'];
 		if (!in_array($key, $permittedKeys)) {
 			return new JSONResponse([], Http::STATUS_FORBIDDEN);

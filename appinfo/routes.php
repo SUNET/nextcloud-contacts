@@ -16,7 +16,7 @@ return [
 		['name' => 'social_api#set_user_config', 'url' => '/api/v1/social/config/user/{key}', 'verb' => 'PUT'],
 		['name' => 'social_api#get_user_config', 'url' => '/api/v1/social/config/user/{key}', 'verb' => 'GET'],
 
-		['name' => 'invites_api#get_user_config', 'url' => '/api/v1/invites', 'verb' => 'POST'],
-		['name' => 'invites_api#get_user_config', 'url' => '/api/v1/invites/accept', 'verb' => 'POST'],
+		['name' => 'invitation_api#create_invitation', 'url' => '/api/v1/invites', 'verb' => 'POST'],
+		['name' => 'invitation_api#accept_invitation', 'url' => '/api/v1/invites/accept', 'verb' => 'POST'],
 	]
 ];
