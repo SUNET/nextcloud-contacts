@@ -10,6 +10,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
+use OCP\AppFramework\Utility\ITimeFactory;
 
 class InvitationApiController extends ApiController {
 	protected $appName;
@@ -18,7 +19,8 @@ class InvitationApiController extends ApiController {
 		IRequest $request,
 		private IConfig $config,
 		private IUserSession $userSession,
-		private InvitesApiService $socialApiService,
+		private InvitesApiService $invitationService,
+		private ITimeFactory $timeFactory
 	) {
 		parent::__construct(Application::APP_ID, $request);
 
@@ -34,13 +36,18 @@ class InvitationApiController extends ApiController {
 	 *
 	 * @returns {JSONResponse} an empty JSONResponse with respective http status code
 	 */
-	public function createInvitation($key, $allow) {
-		$permittedKeys = ['allowSocialSync'];
-		if (!in_array($key, $permittedKeys)) {
-			return new JSONResponse([], Http::STATUS_FORBIDDEN);
+	public function createInvitation(string $name, string $email, ?\Datetime $expiresAt) {
+		$invitation = new Invitation();
+		if ($email == null || trim($email) == ''){
+			return new JSONResponse([], Http::STATUS_BAD_REQUEST);	
 		}
-		$this->config->setAppValue(Application::APP_ID, $key, $allow);
-		return new JSONResponse([], Http::STATUS_OK);
+		$invitation->name = $name;
+		$invitation->email = $email;
+		$invitation->expiresAt = $expiresAt;
+		$invitation->createdAt = $this->timeFactory->now();
+		$invitation->userId = $this->userSession->getUser()->getUID();
+		$this->invitationService->createInvitation($invitation);
+		return new JSONResponse([], Http::STATUS_OK); 
 	}
 
 	/**

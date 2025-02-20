@@ -45,5 +45,12 @@ class InvitationApiService {
 		$this->appName = Application::APP_ID;
 	}
 
+	public function createInvitation() : array{
+
+	}
+
+	public function acceptInvitation() : array{
+		
+	}
 
 }
