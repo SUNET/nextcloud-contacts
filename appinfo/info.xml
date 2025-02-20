@@ -16,7 +16,7 @@
 * 🙈 **We’re not reinventing the wheel!** Based on the great and open SabreDAV library.
 	</description>
 
-	<version>7.1.0-dev.0</version>
+	<version>8.0.0-dev.0</version>
 	<licence>agpl</licence>
 
 	<author mail="hamza221@users.noreply.github.com">Hamza Mahjoubi</author>
@@ -55,6 +55,10 @@
 		<admin>OCA\Contacts\Settings\AdminSettings</admin>
 	</settings>
 
+	<database>
+    	        <migrations>1</migrations>
+	</database>
+
 	<navigations>
 		<navigation>
 			<name>Contacts</name>
@@ -68,3 +72,4 @@
 		<provider>OCA\Contacts\ContactsMenu\Providers\DetailsProvider</provider>
 	</contactsmenu>
 </info>
+
