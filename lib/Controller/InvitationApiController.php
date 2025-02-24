@@ -36,7 +36,7 @@ class InvitationApiController extends ApiController {
 	 *
 	 * @returns {JSONResponse} an empty JSONResponse with respective http status code
 	 */
-	public function createInvitation(string $name, string $email, ?\Datetime $expiresAt) {
+	public function create(string $name, string $email, ?\Datetime $expiresAt) {
 		$invitation = new Invitation();
 		if ($email == null || trim($email) == ''){
 			return new JSONResponse([], Http::STATUS_BAD_REQUEST);	
@@ -53,14 +53,11 @@ class InvitationApiController extends ApiController {
 	/**
 	 * @NoAdminRequired
 	 *
-	 * update appconfig (user setting)
-	 *
-	 * @param {String} key the identifier to change
-	 * @param {String} allow the value to set
+	 * accept invitation (user setting)
 	 *
 	 * @returns {JSONResponse} an empty JSONResponse with respective http status code
 	 */
-	public function setUserConfig($key, $allow) {
+	public function accept() {
 		$user = $this->userSession->getUser();
 		if (is_null($user)) {
 			return new JSONResponse([], Http::STATUS_PRECONDITION_FAILED);
