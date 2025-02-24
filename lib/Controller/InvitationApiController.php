@@ -3,7 +3,7 @@
 namespace OCA\Contacts\Controller;
 
 use OCA\Contacts\AppInfo\Application;
-use OCA\Contacts\Service\SocialApiService;
+use OCA\Contacts\Invitation\Invitation;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -31,8 +31,9 @@ class InvitationApiController extends ApiController {
 	/**
 	 * update appconfig (admin setting)
 	 *
-	 * @param {String} key the identifier to change
-	 * @param {String} allow the value to set
+	 * @param {String} name name on recipient
+	 * @param {String} $email 
+	 * @param {Sting} $expiresAt
 	 *
 	 * @returns {JSONResponse} an empty JSONResponse with respective http status code
 	 */

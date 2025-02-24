@@ -48,7 +48,6 @@ class VersionOCMInvitation20250206 extends SimpleMigrationStep {
 		
 		]);
 
-
 		$table->addColumn('token', 'string', [
 			'notnull' => true,
 			'length' => 60,

@@ -26,11 +26,12 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IDBConnection;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\Mail\IMailer;
 
 
 class InvitationApiService {
 	private $appName;
-
+	private $invitation_table_name = "invites";
 	public function __construct(
 		private IDBConnection $dbConnection,
 		private IManager $manager,
@@ -40,12 +41,26 @@ class InvitationApiService {
 		private IURLGenerator $urlGen,
 		private CardDavBackend $davBackend,
 		private ITimeFactory $timeFactory,
-		private ImageResizer $imageResizer,
+		private IMailer $mailer
 	) {
 		$this->appName = Application::APP_ID;
 	}
 
-	public function createInvitation() : array{
+	public function createInvitation(Invitation $invitation) : array{
+		$query = $this->dbConnection->getQueryBuilder();
+		$tkoken = ''; //todo: creat guid
+		$query->insert($this->invitation_table_name)
+		->values([
+			'user_id' => $invitation->userId,
+			'token' => $token,
+			'email' => $invitation->email,
+			'createdAt'=> $invitation->createdAt,
+			'expiresAt' => $invitation->expiresAt,
+		])->executeStatement();
+		
+		sendInvitationEMail($invitation->email, $invitation->name, $token);
+
+
 
 	}
 
@@ -53,4 +68,38 @@ class InvitationApiService {
 		
 	}
 
+	public function sendInvitationEMail($toUserEmail, $toDisplayName, $token) {
+
+		if (!$toUserEmail || !filter_var($toUserEmail, FILTER_VALIDATE_EMAIL)) {
+				throw new Exception('Invalid email address (' . $toUserEmail . ')');
+		}
+	   
+		$emailTemplate = $this->mailer->createEMailTemplate('test@gmail.com', [
+								'owner' => 'tester',
+								'title' => 'Assign Value',
+								'link' => 'http://google.com'
+						]);
+	
+	   $emailTemplate->setSubject('Invitation to the NextCloud contacts');
+						$emailTemplate->addHeader();
+						$emailTemplate->addHeading('OCM Invitation', false);
+						$emailTemplate->addBodyText('it is an ocm invitation.');
+						$emailTemplate->addBodyText('please click below link to be added as contact');
+						$emailTemplate->addBodyText('Updated results');
+	
+	   //$emailTemplate->addFooter('This email is sent to you on behalf of the application. If you want to get removed from this app, contact the site administrator');
+	
+		try {
+				$message = $this->mailer->createMessage();
+				$message->setTo([$toUserEmail => $toDisplayName]);
+				$message->useTemplate($emailTemplate);
+				$this->mailer->send($message);
+	
+				return 1;
+	
+		} catch (\Exception $e) {
+				$this->logger->logException($e);
+				throw $e;
+		}
+	}
 }
