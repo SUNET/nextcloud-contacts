@@ -55,10 +55,6 @@
 		<admin>OCA\Contacts\Settings\AdminSettings</admin>
 	</settings>
 
-	<database>
-    	        <migrations>1</migrations>
-	</database>
-
 	<navigations>
 		<navigation>
 			<name>Contacts</name>
