@@ -1,0 +1,199 @@
+/**
+ * SPDX-FileCopyrightText: 2021 Nextcloud GmbH and Nextcloud contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
+import { MemberLevel, MemberLevels, MemberType } from '../models/constants'
+interface MemberPairs {
+	id: string,
+	type: MemberType
+}
+
+type ProviderEditType = 'name' | 'description' | 'settings' | 'config'
+export enum ProviderEdit {
+	Name = 'name',
+	Description = 'description',
+	Settings = 'settings',
+	Config = 'config',
+}
+
+interface ProviderSetting {
+	setting: string,
+	value: string
+}
+
+/**
+ * Get the circles list without the members
+ *
+ * @return {Array}
+ */
+export const getProviders = async function() {
+	const response = await axios.get(generateOcsUrl('apps/circles/circles'))
+	return response.data.ocs.data
+}
+
+/**
+ * Get a specific circle
+ *
+ * @param {string} circleId
+ * @return {object}
+ */
+export const getProvider = async function(circleId: string) {
+	const response = await axios.get(generateOcsUrl('apps/circles/circles/{circleId}', { circleId }))
+	return response.data.ocs.data
+}
+
+/**
+ * Create a new circle
+ *
+ * @param {string} name the circle name
+ * @param personal
+ * @param local
+ * @return {object}
+ */
+export const createProvider = async function(name: string, personal: boolean, local: boolean) {
+	const response = await axios.post(generateOcsUrl('apps/circles/circles'), {
+		name,
+		personal,
+		local,
+	})
+	return response.data.ocs.data
+}
+
+/**
+ * Delete an existing circle
+ *
+ * @param {string} circleId the circle id
+ * @return {object}
+ */
+export const deleteProvider = async function(circleId: string) {
+	const response = await axios.delete(generateOcsUrl('apps/circles/circles/{circleId}', { circleId }))
+	return response.data.ocs.data
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * Edit an existing circle
+ *
+ * @param {string} circleId the circle id
+ * @param {ProviderEditType} type the edit type
+ * @param {any} data the data
+ * @param value
+ * @return {object}
+ */
+export const editProvider = async function(circleId: string, type: ProviderEditType, value: any) {
+	const response = await axios.put(generateOcsUrl('apps/circles/circles/{circleId}/{type}', { circleId, type }), { value })
+	return response.data.ocs.data
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+/**
+ * Join a circle
+ *
+ * @param {string} circleId the circle id
+ * @return {Array}
+ */
+export const joinProvider = async function(circleId: string) {
+	const response = await axios.put(generateOcsUrl('apps/circles/circles/{circleId}/join', { circleId }))
+	return response.data.ocs.data
+}
+
+/**
+ * Leave a circle
+ *
+ * @param {string} circleId the circle id
+ * @return {Array}
+ */
+export const leaveProvider = async function(circleId: string) {
+	const response = await axios.put(generateOcsUrl('apps/circles/circles/{circleId}/leave', { circleId }))
+	return response.data.ocs.data
+}
+
+/**
+ * Get the circle members without the members
+ *
+ * @param {string} circleId the circle id
+ * @return {Array}
+ */
+export const getProviderMembers = async function(circleId: string) {
+	const response = await axios.get(generateOcsUrl('apps/circles/circles/{circleId}/members', { circleId }))
+	return response.data.ocs.data
+}
+
+/**
+ * Search a potential circle member
+ *
+ * @param {string} term the search query
+ * @return {Array}
+ */
+export const searchMember = async function(term: string) {
+	const response = await axios.get(generateOcsUrl('apps/circles/search?term={term}', { term }))
+	return response.data.ocs.data
+}
+
+/**
+ * Add a circle member
+ *
+ * @param {string} circleId the circle id
+ * @param {string} members the member id
+ * @return {Array}
+ */
+export const addMembers = async function(circleId: string, members: Array<MemberPairs>) {
+	const response = await axios.post(generateOcsUrl('apps/circles/circles/{circleId}/members/multi', { circleId }), { members })
+	return response.data.ocs.data
+}
+
+/**
+ * Delete a circle member
+ *
+ * @param {string} circleId the circle id
+ * @param {string} memberId the member id
+ * @return {Array}
+ */
+export const deleteMember = async function(circleId: string, memberId: string) {
+	const response = await axios.delete(generateOcsUrl('apps/circles/circles/{circleId}/members/{memberId}', { circleId, memberId }))
+	return Object.values(response.data.ocs.data)
+}
+
+/**
+ * change a member level
+ *
+ * @see levels file src/models/constants.js
+ *
+ * @param {string} circleId the circle id
+ * @param {string} memberId the member id
+ * @param {number} level the new member level
+ * @return {Array}
+ */
+export const changeMemberLevel = async function(circleId: string, memberId: string, level: MemberLevel) {
+	if (!(level in MemberLevels)) {
+		throw new Error('Invalid level.')
+	}
+
+	const response = await axios.put(generateOcsUrl('apps/circles/circles/{circleId}/members/{memberId}/level', { circleId, memberId }), {
+		level,
+	})
+	return Object.values(response.data.ocs.data)
+}
+
+/**
+ * Accept a circle member request
+ *
+ * @param {string} circleId the circle id
+ * @param {string} memberId the member id
+ * @return {Array}
+ */
+export const acceptMember = async function(circleId: string, memberId: string) {
+	const response = await axios.put(generateOcsUrl('apps/circles/circles/{circleId}/members/{memberId}', { circleId, memberId }))
+	return response.data.ocs.data
+}
+
+export const editProviderSetting = async function(circleId: string, setting: ProviderSetting) {
+	const response = await axios.put(
+		generateOcsUrl('apps/circles/circles/{circleId}/setting', { circleId }),
+		setting,
+	)
+	return response.data.ocs.data
+}

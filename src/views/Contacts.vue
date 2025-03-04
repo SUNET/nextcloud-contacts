@@ -7,11 +7,11 @@
 	<Content :app-name="appName">
 		<!-- new-contact-button + navigation + settings -->
 		<RootNavigation :contacts-list="contactsList"
-			:loading="loadingContacts || loadingCircles"
+			:loading="loadingContacts || loadingCircles || loadingProviders"
 			:selected-group="selectedGroup"
 			:selected-contact="selectedContact">
 			<div class="import-and-new-contact-buttons">
-				<SettingsImportContacts v-if="!loadingContacts && isEmptyGroup && !isChartView && !isCirclesView" />
+				<SettingsImportContacts v-if="!loadingContacts && isEmptyGroup && !isChartView && !isCirclesView && !isFederatedView" />
 				<!-- new-contact-button -->
 				<Button v-if="!loadingContacts"
 					type="secondary"
@@ -26,9 +26,11 @@
 			</div>
 		</RootNavigation>
 
-		<!-- Main content: circle, chart or contacts -->
+		<!-- Main content: circle, fedrated, chart or contacts -->
 		<CircleContent v-if="selectedCircle"
 			:loading="loadingCircles" />
+		<federatedContent v-if="selectedProvider"
+			:loading="loadingProvider" />
 		<ChartContent v-else-if="selectedChart"
 			:contacts-list="contacts" />
 		<ContactsContent v-else
@@ -62,10 +64,11 @@ import {
 import { showError } from '@nextcloud/dialogs'
 import ICAL from 'ical.js'
 
-import CircleContent from '../components/AppContent/CircleContent.vue'
 import ChartContent from '../components/AppContent/ChartContent.vue'
+import CircleContent from '../components/AppContent/CircleContent.vue'
 import ContactsContent from '../components/AppContent/ContactsContent.vue'
 import ContactsPicker from '../components/EntityPicker/ContactsPicker.vue'
+import FederatedContent from '../components/AppContent/FederatedContent.vue'
 import ImportView from './Processing/ImportView.vue'
 import RootNavigation from '../components/AppNavigation/RootNavigation.vue'
 import SettingsImportContacts from '../components/AppNavigation/Settings/SettingsImportContacts.vue'
@@ -76,6 +79,7 @@ import rfcProps from '../models/rfcProps.js'
 
 import client from '../services/cdav.js'
 import isCirclesEnabled from '../services/isCirclesEnabled.js'
+import isFederatedEnabled from '../services/isFederatedEnabled.js'
 
 import usePrincipalsStore from '../store/principals.js'
 
@@ -84,13 +88,14 @@ export default {
 
 	components: {
 		Button,
-		CircleContent,
 		ChartContent,
+		CircleContent,
 		ContactsContent,
 		ContactsPicker,
 		Content,
-		ImportView,
+		FederatedContent,
 		IconAdd,
+		ImportView,
 		Modal,
 		RootNavigation,
 		SettingsImportContacts,
@@ -103,6 +108,10 @@ export default {
 	// passed by the router
 	props: {
 		selectedCircle: {
+			type: String,
+			default: undefined,
+		},
+		selectedProvider: {
 			type: String,
 			default: undefined,
 		},
@@ -128,6 +137,7 @@ export default {
 
 			// Let's but the loading state to true if circles is enabled
 			loadingCircles: isCirclesEnabled,
+			loadingProvider: isFederatedEnabled,
 			loadingContacts: true,
 		}
 	},
@@ -148,6 +158,9 @@ export default {
 		},
 		circles() {
 			return this.$store.getters.getCircles
+		},
+		providers() {
+			return this.$store.getters.getProviders
 		},
 		orderKey() {
 			return this.$store.getters.getOrderKey
@@ -209,6 +222,9 @@ export default {
 		isCirclesView() {
 			return this.selectedGroup === ROUTE_CIRCLE
 		},
+		isFederatedView() {
+			return this.selectedGroup === ROUTE_FEDERATED
+		},
 
 		ungroupedContacts() {
 			return this.sortedContacts.filter(contact => this.contacts[contact.key].groups && this.contacts[contact.key].groups.length === 0)
@@ -235,6 +251,11 @@ export default {
 			this.logger.info('Circles frontend enabled')
 		} else {
 			this.logger.info('No compatible version of circles found')
+		}
+		if (this.isFederatedEnabled) {
+			this.logger.info('Federated frontend enabled')
+		} else {
+			this.logger.info('No compatible version of federated invites found')
 		}
 	},
 
@@ -270,6 +291,12 @@ export default {
 		if (isCirclesEnabled) {
 			this.$store.dispatch('getCircles').then(() => {
 				this.loadingCircles = false
+			})
+		}
+		// Get federated if enabled
+		if (isFederatedEnabled) {
+			this.$store.dispatch('getFederated').then(() => {
+				this.loadingProvider = false
 			})
 		}
 	},
@@ -382,9 +409,11 @@ export default {
 
 				// Unknown group
 				if (!this.selectedCircle
+          && !this.selectedProvider
 					&& !this.groups.find(group => group.name === this.selectedGroup)
 					&& GROUP_ALL_CONTACTS !== this.selectedGroup
 					&& GROUP_NO_GROUP_CONTACTS !== this.selectedGroup
+          && ROUTE_FEDERATED !== this.selectedGroup
 					&& ROUTE_CIRCLE !== this.selectedGroup) {
 					showError(t('contacts', 'Group {group} not found', { group: this.selectedGroup }))
 					console.error('Group not found', this.selectedGroup)
